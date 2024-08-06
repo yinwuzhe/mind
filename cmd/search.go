@@ -13,6 +13,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var FileName = "/.mind_assoc_ad.json"
+
 // searchCmd represents the search command
 var searchCmd = &cobra.Command{
 	Use:   "search",
@@ -29,7 +31,8 @@ var searchCmd = &cobra.Command{
 			return
 		}
 		homeDir := usr.HomeDir
-		file, err := os.OpenFile(homeDir+"/.mind_assoc.json", os.O_RDWR|os.O_CREATE, 0666)
+
+		file, err := os.OpenFile(homeDir+FileName, os.O_RDWR|os.O_CREATE, 0666)
 		if err != nil {
 			fmt.Println("打开文件失败：", err)
 			return
@@ -37,7 +40,7 @@ var searchCmd = &cobra.Command{
 		defer file.Close()
 		// 读取JSON数据
 		data, err := ioutil.ReadAll(file)
-		var jsonData map[string]Assoc
+		var jsonData map[string][]Assoc
 		if err != nil {
 			//fmt.Println("读取文件失败：", err)
 			//return
@@ -54,59 +57,62 @@ var searchCmd = &cobra.Command{
 		flag := cmd.Flag("all")
 		if flag.Value.String() == "true" {
 			//查找过的存放在一个map里面，免得死循环
-			chainMap = make(map[string]string)
+			chainMap = make(map[string][]Assoc)
 			chainList = make([]string, 0)
 
-			next := treeTheMap(jsonData, first)
-			for next != "" {
-				next = treeTheMap(jsonData, next)
-			}
+			treeTheMap(jsonData, first)
+			fmt.Println("关联的词链和图像：", chainMap)
+			fmt.Println("关联的词链：", chainList)
+
 		} else {
-			assoc, ok := jsonData[first]
+			assocs, ok := jsonData[first]
 			if !ok {
 				fmt.Println("没有找到关联词")
 			} else {
-				fmt.Printf("%v 和%v 关联：%v\n", assoc.Item1, assoc.Item2, assoc.Desc)
+				for _, assoc := range assocs {
+					fmt.Printf("%v 和%v 关联：%v\n", assoc.Item1, assoc.Item2, assoc.Desc)
+				}
 			}
 		}
 
 	},
 }
 
-var chainMap map[string]string
+// 已经找过的词
+var chainMap map[string][]Assoc
 var chainList []string
-var index = 0
 
-func treeTheMap(m map[string]Assoc, first string) (next string) {
+func treeTheMap(m map[string][]Assoc, first string) {
 	if first == "" {
-		return ""
+		return
 	}
-	assoc, ok := m[first]
+	//fmt.Println(" 当前词语：", first)
+	assocs, ok := m[first] //是个列表
 	if !ok {
 		fmt.Println("没有找到关联词")
-		return ""
+		return
 	} else {
+
 		_, ok2 := chainMap[first]
 		if !ok2 {
-			index = index + 1
-			chainMap[first] = assoc.Desc
-			chainList = append(chainList, first)
+			//放入chainMap
+			chainMap[first] = assocs
+			chainList = append(chainList, first) //
 		} else {
-			//打印真正的结果
-			fmt.Println("关联的词链和图像：", chainMap)
-			fmt.Println("关联的词链：", chainList)
-			return ""
+
+			return
+		}
+		for _, assoc := range assocs {
+			if assoc.Item2 != first {
+				treeTheMap(m, assoc.Item2)
+			} else if assoc.Item1 != first {
+				treeTheMap(m, assoc.Item1)
+			} else {
+				return
+			}
 		}
 
-		if assoc.Item2 != first {
-			return assoc.Item2
-		} else if assoc.Item1 != first {
-			return assoc.Item1
-		} else {
-			return ""
-		}
 	}
-	return ""
 }
 
 func init() {

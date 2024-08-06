@@ -45,7 +45,7 @@ var assocCmd = &cobra.Command{
 			return
 		}
 		homeDir := usr.HomeDir
-		file, err := os.OpenFile(homeDir+"/.mind_assoc.json", os.O_RDWR|os.O_CREATE, 0666)
+		file, err := os.OpenFile(homeDir+FileName, os.O_RDWR|os.O_CREATE, 0666)
 		if err != nil {
 			fmt.Println("打开文件失败：", err)
 			return
@@ -53,7 +53,7 @@ var assocCmd = &cobra.Command{
 		defer file.Close()
 		// 读取JSON数据
 		data, err := ioutil.ReadAll(file)
-		var old map[string]Assoc
+		var old map[string][]Assoc = make(map[string][]Assoc)
 		if err != nil {
 			fmt.Println("读取文件失败：", err)
 			//return
@@ -66,16 +66,22 @@ var assocCmd = &cobra.Command{
 			}
 		}
 		log.Println(old)
-		m3 := make(map[string]Assoc)
+
+		//如果m和old里面有相同的key,则合并
 		for k, v := range m {
-			m3[k] = v
-		}
-		for k, v := range old {
-			m3[k] = v
+			a, ok := old[k]
+			if ok {
+				old[k] = append(a, v)
+			} else {
+
+				old[k] = []Assoc{v}
+
+			}
+
 		}
 
 		// 写入JSON数据
-		marshal, err := json.Marshal(m3)
+		marshal, err := json.Marshal(old)
 		if err != nil {
 			return
 		}
