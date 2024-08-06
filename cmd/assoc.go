@@ -20,9 +20,12 @@ type Assoc struct {
 
 // assocCmd represents the assoc command
 var assocCmd = &cobra.Command{
-	Use:     "assoc",
-	Short:   "将一个词语和另一个词关联记忆",
-	Long:    `将一个词语和另一个词关联记忆`,
+	Use:   "assoc",
+	Short: "将一个词语和另一个词关联记忆",
+	Long: `联想词是一种有效的记忆技巧，通过建立两个词语之间的联系，帮助我们更容易地记住它们。
+联想词的基本原理是通过建立一副图像，将一个词与另一个词联系起来。
+这个图像可以是任何东西，例如一个场景、一个物品、一个人物或者一个动作。
+通过将两个词联系起来，我们可以更容易地记住它们，因为我们的大脑更容易记住图像和故事。`,
 	Example: "assoc 耳朵 笔 笔刺穿了耳朵",
 	Args:    cobra.ExactArgs(3),
 	//ValidArgs: []string{"词语1", "词语2", "用一句话描述关联的图像"},
@@ -58,7 +61,7 @@ var assocCmd = &cobra.Command{
 			// 将JSON数据转换为map
 			err = json.Unmarshal(data, &old)
 			if err != nil {
-				fmt.Println("转换JSON失败：", err)
+				//fmt.Println("转换JSON失败：", err)
 				//return
 			}
 		}

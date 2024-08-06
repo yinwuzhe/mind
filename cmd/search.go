@@ -39,13 +39,14 @@ var searchCmd = &cobra.Command{
 		data, err := ioutil.ReadAll(file)
 		var jsonData map[string]Assoc
 		if err != nil {
-			fmt.Println("读取文件失败：", err)
+			//fmt.Println("读取文件失败：", err)
 			//return
 		} else {
 			// 将JSON数据转换为map
 			err = json.Unmarshal(data, &jsonData)
 			if err != nil {
-				fmt.Println("转换JSON失败：", err)
+
+				//fmt.Println("转换JSON失败：", err)
 				//return
 			}
 		}
